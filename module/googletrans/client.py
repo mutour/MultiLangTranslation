@@ -7,12 +7,12 @@ You can translate text using this module.
 import requests
 import random
 
-from googletrans import urls, utils
-from googletrans.adapters import TimeoutAdapter
-from googletrans.compat import PY3
-from googletrans.gtoken import TokenAcquirer
-from googletrans.constants import DEFAULT_USER_AGENT, LANGCODES, LANGUAGES, SPECIAL_CASES
-from googletrans.models import Translated, Detected
+import urls, utils
+from adapters import TimeoutAdapter
+from compat import PY3
+from gtoken import TokenAcquirer
+from constants import DEFAULT_USER_AGENT, LANGCODES, LANGUAGES, SPECIAL_CASES
+from models import Translated, Detected
 
 
 EXCLUDES = ('en', 'ca', 'fr')

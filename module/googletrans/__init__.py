@@ -2,6 +2,5 @@
 __all__ = 'Translator',
 __version__ = '2.4.0'
 
-
-from googletrans.client import Translator
-from googletrans.constants import LANGCODES, LANGUAGES
+from client import Translator
+from constants import LANGCODES, LANGUAGES

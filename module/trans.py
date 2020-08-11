@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
-
 from googletrans import Translator
 from googletrans import constants
 
@@ -64,7 +63,13 @@ if __name__ == '__main__':
     #     "GET VIP\nGET VIP",
     # ], dest="zh-cn"):
     #     print text
-    text = ur'You can 😁😁😁😁Cancel anytime😁😁😁. I Can😁😁😁😁Cancel anytime😁😁😁.'
-    print gt.translate(text, dest="zh-cn", src='en')
+    # text = ur'You can 😁😁😁😁Cancel anytime😁😁😁. I Can😁😁😁😁Cancel anytime😁😁😁.'
+    # print gt.translate(text, dest="zh-cn", src='en')
 
-    pass
+    for i in range(100):
+        text = "'Understand and agree to the'"
+        print gt.translate(text, dest='ko', src='en')
+
+    '''
+    https://translate.google.cn/translate_a/single?otf=1&amp;tsel=0&amp;hl=ko&amp;dt=at&amp;dt=bd&amp;dt=ex&amp;dt=ld&amp;dt=md&amp;dt=qca&amp;dt=rw&amp;dt=rm&amp;dt=ss&amp;dt=t&amp;ie=UTF-8&amp;oe=UTF-8&amp;q=Understand+and+agree+to+the&amp;tl=ko&amp;client=t&amp;tk=550453.959179&amp;sl=en&amp;ssel=0
+    '''

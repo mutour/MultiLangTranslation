@@ -39,7 +39,8 @@ class LanguageTranslation(object):
     ]
 
     def __init__(self):
-        self.db = DB('cache')
+        dirpath = os.path.split(os.path.realpath(__file__))[0]
+        self.db = DB(os.path.join(dirpath, 'cache'))
         self.gt = GoogleTrans()
         self.infos = []
         self.languages = set()
@@ -108,24 +109,22 @@ class LanguageTranslation(object):
         for i in range(1, rows):
             row = eh.row(i)
             key = row[0]
-            translation = row[1]
-            manual_translation = row[2]
+            translation = str(row[1])
+            manual_translation = str(row[2])
             text = row[3]
 
             infos = {
-                self.KEY_NAME: key,
-                self.KEY_TEXT: text,
-                self.KEY_TRANSLATION: translation,
-                self.KEY_MANUAL_TRANSLATION: manual_translation,
+                self.KEY_NAME: key.strip(),
+                self.KEY_TEXT: text.strip(),
+                self.KEY_TRANSLATION: translation.lower() == 'true' or str(translation) == '1',
+                self.KEY_MANUAL_TRANSLATION: manual_translation.lower() == 'true' or str(manual_translation) == '1',
                 self.KEY_TRANSLATION_RESULT: {}
             }
             for col in range(4, cols):
-                lang = header[col]
+                lang = header[col].lower()
                 self.languages.add(lang)
                 infos[self.KEY_TRANSLATION_RESULT][lang] = {'text': row[col], 'need_check': False}
             self.infos.append(infos)
-
-        print self.infos
 
     def load(self, input_path, file_type=FILE_TYPE_XML, platform=PLATFORM_ANDROID):
         if file_type == FILE_TYPE_XML:
@@ -134,7 +133,9 @@ class LanguageTranslation(object):
             self._load_excel(input_path, platform=platform)
 
     def translation(self, languages):
-        for info in self.infos:
+        count = len(self.infos)
+        for i in range(count):
+            info = self.infos[i]
             name = info[self.KEY_NAME]
             text = info[self.KEY_TEXT]
             need_translation = info[self.KEY_TRANSLATION]
@@ -147,12 +148,16 @@ class LanguageTranslation(object):
                 continue
             if need_translation == True:
                 format_text = self._format_text(text)
-                log.i("format: " + text + ' >>> ' + format_text)
+                log.i('[%d/%d] format: %s >>> %s' % (i, count, text, format_text))
                 for dst_lang in languages:
                     oldvalue = translation_result.get(dst_lang)
                     if oldvalue is not None and len(oldvalue['text'].strip()) > 0:
                         continue
-                    result_text = self._translation_impl(format_text, dst=dst_lang)
+                    try:
+                        result_text = self._translation_impl(format_text, dst=dst_lang)
+                    except Exception, e:
+                        log.e("[%d/%d] translation[%s] error:%s" % (i, count, dst_lang, format_text))
+                        result_text = u''
                     translation_result[dst_lang] = {'text': self._format_text(result_text, True), 'need_check': True}
             else:
                 for dst_lang in languages:
@@ -178,6 +183,7 @@ class LanguageTranslation(object):
         def default_transform(key, obj, row, col):
             # {'text': value, 'text_color': '', 'background_color': ''}
             text_color = None
+            background_color = None
             translation = obj.get('translation')
             manual_translation = obj.get('manual_translation')
             if translation == True and manual_translation == True:
@@ -191,13 +197,19 @@ class LanguageTranslation(object):
                 language_result = obj.get(self.KEY_TRANSLATION_RESULT)
                 if language_result is not None:
                     lang = key.replace(language_prefix, '')
-                    value = language_result.get(lang).get('text')
-                    if language_result.get(lang).get('need_check') is False:
-                        text_color = None
+                    lang_info = language_result.get(lang)
+                    if lang_info is not None:
+                        value = lang_info.get('text')
+                        if lang_info.get('need_check') is False:
+                            text_color = None
+                    else:
+                        value = None
+                    if value is None or len(value.strip()) == 0:
+                        background_color = 'red'
                 pass
             else:
                 value = obj.get(key)
-            return {'text': value, 'text_color': text_color}
+            return {'text': value, 'text_color': text_color, 'background_color': background_color}
 
         ewh = ExcelWriteHelper()
         ewh.set_head_style(text_color='black', background_color='ice_blue')
@@ -255,10 +267,6 @@ class LanguageTranslation(object):
 
     def run(self, input_path, out_path, platform=PLATFORM_ANDROID, input_type=FILE_TYPE_XML,
             output_type=FILE_TYPE_EXCEL, translation=True, languages=None):
-        nosupportLanguages = set(languages) - set(GoogleTrans.supportLanguages().keys())
-        if len(nosupportLanguages) > 0:
-            log.e("不支持的语言" + str(list(nosupportLanguages)))
-            return
         if input_path == out_path:
             log.e("暂时不支持覆盖文件, 请修改输出文件名")
             return
@@ -270,7 +278,13 @@ class LanguageTranslation(object):
             return
 
         self.load(input_path, file_type=input_type, platform=platform)
+        languages = list(self.languages | set(languages))
+        if '' in languages:
+            languages.remove('')
         if translation:
+            unsupport_lanuages = set(languages) - set([k for k in GoogleTrans().supportLanguages().keys()])
+            if len(unsupport_lanuages) > 0:
+                log.e("存在不支持的语言: " + str(unsupport_lanuages))
             self.translation(languages)
         self.export(out_path, platform=platform, output_file_type=output_type, languages=languages)
 

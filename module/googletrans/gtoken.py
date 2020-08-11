@@ -7,9 +7,9 @@ import time
 import requests
 
 
-from googletrans.compat import PY3
-from googletrans.compat import unicode
-from googletrans.utils import rshift
+from compat import PY3
+from compat import unicode
+from utils import rshift
 
 
 class TokenAcquirer(object):

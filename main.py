@@ -6,6 +6,8 @@ import sys
 from languagetranslation import *
 from module import log
 
+VERSION = '1.0'
+
 
 def main():
     '''
@@ -21,7 +23,7 @@ def main():
     :return:
     '''
 
-    opt = argparse.ArgumentParser(description="多语言翻译")
+    opt = argparse.ArgumentParser(description="多语言翻译", version=VERSION)
     opt.add_argument("input", action="store", help="输入文件")
     opt.add_argument("output", action="store", help="输出文件or目录")
     opt.add_argument("-p", "--platform", action="store", dest="platform", default='android',
@@ -30,7 +32,7 @@ def main():
                      help="输入文件类型:excel或者xml, 不设置则自行通过文件后缀判断")
     opt.add_argument("-ot", "--outputtype", action="store", dest='output_type',
                      help="输出文件类型:excel或者xml, 不设置则自行通过文件后缀判断")
-    opt.add_argument("-l", "--languages", action="store", dest='languages', help="处理语言,逗号分隔")
+    opt.add_argument("-l", "--languages", action="store", default='', dest='languages', help="处理语言,逗号分隔")
     opt.add_argument("-s", "--supportlanguages", action="store_true", default=False, dest='support_languages',
                      help="支持的语言")
     if len(sys.argv) < 2:
